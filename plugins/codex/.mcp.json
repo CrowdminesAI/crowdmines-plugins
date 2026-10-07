@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "crowdmines-dev": {
+      "type": "http",
+      "url": "https://dev.emthanh.me/mcp"
+    }
+  }
+}

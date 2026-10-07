@@ -1,0 +1,14 @@
+{
+  "name": "crowdmines",
+  "owner": {
+    "name": "CrowdMines"
+  },
+  "plugins": [
+    {
+      "name": "crowdmines-dev",
+      "source": "./plugins/claude",
+      "description": "CrowdMines dev datasets, analysis, and local uploads"
+    }
+  ],
+  "description": "CrowdMines client plugins"
+}

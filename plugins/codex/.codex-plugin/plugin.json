@@ -1,0 +1,14 @@
+{
+  "name": "crowdmines-dev",
+  "version": "0.4.3",
+  "description": "Dev connection to CrowdMines organization datasets and analysis",
+  "mcpServers": "./.mcp.json",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "CrowdMines Dev",
+    "shortDescription": "Organization datasets and analysis"
+  },
+  "author": {
+    "name": "CrowdMines"
+  }
+}
