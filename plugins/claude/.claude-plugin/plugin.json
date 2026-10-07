@@ -1,0 +1,9 @@
+{
+  "name": "crowdmines-dev",
+  "version": "0.4.3",
+  "description": "Dev connection to CrowdMines organization datasets and analysis",
+  "mcpServers": "./.mcp.json",
+  "author": {
+    "name": "CrowdMines"
+  }
+}
