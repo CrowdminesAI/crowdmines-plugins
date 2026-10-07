@@ -1,4 +1,4 @@
-# CrowdMines Dev for Codex
+# CrowdMines client plugins
 
 Download client bundles from [Releases](https://github.com/CrowdminesAI/crowdmines-plugins/releases).
 This repository distributes built packages and installation instructions only.
