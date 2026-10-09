@@ -2,25 +2,29 @@
 
 Install the CrowdMines Dev plugin in Codex or Claude Code from this public GitHub
 marketplace. It includes the MCP connection, upload skill, and standalone Python
-upload helper. The current bundle version is **0.5.0**.
+upload helper. The current bundle version is **0.5.1**.
 
 The plugin connects to **https://dev.emthanh.me/mcp**. Complete CrowdMines login,
 MFA if required, and organization consent. Public installation does not grant access
 to account data. Local uploads require Python 3.10+; no separate helper installation
-is needed. Use either the plugin or a manual MCP connection to avoid duplicate tools.
+is needed. Use either the plugin or a manual MCP connection, not both: each adds the
+same tools under its own name.
 
 ## Codex
 
 ```sh
+codex features enable mcp_2026_07_28
 codex plugin marketplace add CrowdminesAI/crowdmines-plugins --ref main
 codex plugin add crowdmines-dev@crowdmines
-codex --enable mcp_2026_07_28 mcp login crowdmines-dev --oauth-client-registration cimd --scopes datasets:read,datasets:write,analysis:read,analysis:run,offline_access
-codex --no-daemon --enable mcp_2026_07_28
+codex mcp login crowdmines-dev
+codex
 ```
 
-The tested Codex 0.160.0 needs the July protocol flag for processes using this server.
-Installing a plugin does not enable that flag. Complete the browser sign-in when
-prompted. To update, refresh the marketplace and install its current bundle:
+The tested Codex 0.160.0 speaks the July 2026 MCP protocol only with the
+`mcp_2026_07_28` feature on. The first command saves it in your Codex configuration,
+so you run it once; restart any Codex that is already running. Installing the plugin
+does not sign in: `codex mcp login crowdmines-dev` opens the browser sign-in. To
+update, refresh the marketplace and install its current bundle:
 
 ```sh
 codex plugin marketplace upgrade crowdmines
@@ -39,7 +43,8 @@ claude mcp login plugin:crowdmines-dev:crowdmines-dev
 claude
 ```
 
-Complete browser login and consent. To update explicitly:
+Complete browser login and consent. The login command needs an interactive terminal;
+inside Claude Code, `/mcp` offers the same sign-in. To update explicitly:
 
 ```sh
 claude plugin marketplace update crowdmines
@@ -62,9 +67,20 @@ codex plugin marketplace remove crowdmines
 claude plugin marketplace remove crowdmines
 ```
 
-Do not disconnect your CrowdMines grant solely to update packages. Follow any fresh
-login prompt the client presents. Normal installations already pointing to this
-repository only need the update commands.
+If you added the CrowdMines server by hand as `crowdmines`, remove that entry before
+using the plugin:
+
+```sh
+codex mcp remove crowdmines
+# Or:
+claude mcp remove crowdmines
+```
+
+If you installed an earlier bundle in Codex, run `codex features enable mcp_2026_07_28`
+once; plain `codex` and `codex mcp login crowdmines-dev` then need no extra options. Do
+not disconnect your CrowdMines grant solely to update packages. Follow any fresh login
+prompt the client presents. Normal installations already pointing to this repository
+only need the update commands.
 
 ## Uploads
 
@@ -73,9 +89,13 @@ bytes directly to CrowdMines, completes the upload, and polls its durable operat
 The 200 MiB limit, checksum, destination checks, and retry identifiers are preserved.
 
 Temporary upload-only credentials may enter model context and retained conversations.
-Pass the descriptor through a separate stdin channel; never embed it in shell
-commands, logs, or files. Hosts without a separate stdin channel use website upload
-and then access the dataset through MCP. The helper never reads client OAuth stores.
+The skill passes the descriptor to the helper through a separate stdin channel or, on
+POSIX systems, a private single-use file: a new owner-only (0700) temporary directory
+holding a file created empty with mode 0600 before the credential arrives, then filled
+by the client's file-writing tool. Only the file's path enters the shell, and the
+helper deletes the file before transfer. Never put the descriptor in shell commands,
+arguments, heredocs or logs. Hosts that can do neither use website upload and then
+access the dataset through MCP. The helper never reads client OAuth stores.
 
 ## Distribution
 
