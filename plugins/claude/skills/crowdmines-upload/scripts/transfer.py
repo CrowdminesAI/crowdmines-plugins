@@ -9,6 +9,7 @@ import json
 import os
 import re
 import ssl
+import stat
 import sys
 from pathlib import Path
 from typing import Any
@@ -157,6 +158,53 @@ def upload_file(path: str | Path, descriptor: dict, *, server_origin: str) -> di
     }
 
 
+def read_descriptor_file(path: str) -> bytes:
+    """Consume a private, single-use descriptor without following symlinks.
+
+    POSIX ownership and descriptor-relative operations are required. Platforms
+    without these guarantees must use stdin instead of weakening the checks.
+    """
+    if os.name != "posix" or not hasattr(os, "O_NOFOLLOW"):
+        raise TransferError("Secure descriptor files are unavailable; use stdin")
+    selected = Path(os.path.abspath(os.path.expanduser(path)))
+    directory = os.open(selected.parent, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    try:
+        parent = os.fstat(directory)
+        if parent.st_uid != os.getuid() or parent.st_mode & 0o077:
+            raise TransferError(
+                "Descriptor directory must be private to the current user"
+            )
+        handle = os.open(
+            selected.name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=directory
+        )
+        try:
+            metadata = os.fstat(handle)
+            if (
+                not stat.S_ISREG(metadata.st_mode)
+                or metadata.st_uid != os.getuid()
+                or metadata.st_mode & 0o077
+                or metadata.st_nlink != 1
+            ):
+                raise TransferError("Descriptor must be a private regular file")
+            # Unlink before reading or parsing. Any failure after validation leaves
+            # no credential file behind, and transfer cannot start before removal.
+            current = os.stat(selected.name, dir_fd=directory, follow_symlinks=False)
+            if (current.st_dev, current.st_ino) != (metadata.st_dev, metadata.st_ino):
+                raise TransferError("Descriptor changed while opening")
+            os.unlink(selected.name, dir_fd=directory)
+            if metadata.st_size > MAX_DESCRIPTOR:
+                raise TransferError("Transfer descriptor is too large")
+            with os.fdopen(os.dup(handle), "rb") as stream:
+                raw = stream.read(MAX_DESCRIPTOR + 1)
+            if len(raw) > MAX_DESCRIPTOR:
+                raise TransferError("Transfer descriptor is too large")
+            return raw
+        finally:
+            os.close(handle)
+    finally:
+        os.close(directory)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Inspect and stream a selected file to CrowdMines without reading OAuth credentials"
@@ -171,12 +219,21 @@ def main() -> None:
         required=True,
         help="Trusted CrowdMines origin, configured independently of the descriptor",
     )
+    inputs = upload.add_mutually_exclusive_group()
+    inputs.add_argument("--descriptor-file", metavar="PATH")
+    inputs.add_argument(
+        "--descriptor-stdin", action="store_true", help="Read stdin (default)"
+    )
     args = parser.parse_args()
     try:
         if args.command == "inspect":
             result = inspect_file(args.file)
         else:
-            raw = sys.stdin.buffer.read(MAX_DESCRIPTOR + 1)
+            raw = (
+                read_descriptor_file(args.descriptor_file)
+                if args.descriptor_file
+                else sys.stdin.buffer.read(MAX_DESCRIPTOR + 1)
+            )
             if len(raw) > MAX_DESCRIPTOR:
                 raise TransferError("Transfer descriptor is too large")
             descriptor = json.loads(raw)
