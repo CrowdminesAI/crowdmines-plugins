@@ -3,7 +3,7 @@ name: crowdmines-upload
 description: Upload a user-selected local survey file or questionnaire to CrowdMines, then check dataset processing.
 ---
 
-Use the connected CrowdMines dev tools at https://dev.emthanh.me/mcp. If disconnected,
+Use the connected CrowdMines dev tools at https://dev.crowdmines.ai/mcp. If disconnected,
 use the client's authentication action. Obtain permission to upload the selected file.
 The file must be accessible in this harness; remote MCP does not grant attachment access.
 
@@ -17,7 +17,7 @@ assume the working directory is the plugin. Python 3.10+ is required, with no pi
    into context. Maximum size is 200 MiB.
 2. Call `upload_dataset` with that metadata and a new UUID request_id. Reuse the same
    ID and metadata on retries. For questionnaires include purpose=questionnaire and dataset_id.
-3. Start `upload FILE --server https://dev.emthanh.me` with an input pipe. Send the
+3. Start `upload FILE --server https://dev.crowdmines.ai` with an input pipe. Send the
    JSON tool result (or its transfer object) through standard input and close input.
    Unwrap the MCP structured result first. Use a separate stdin-write facility;
    never interpolate the descriptor into shell code, command arguments, or a heredoc.
@@ -27,7 +27,7 @@ assume the working directory is the plugin. Python 3.10+ is required, with no pi
    /dev/null PATH` inside that private directory). Use the harness's file-writing
    facility to write JSON into that already-private file, preserving its mode. Do not
    create a world-readable descriptor and fix its permissions afterward. Invoke
-   `upload FILE --server https://dev.emthanh.me --descriptor-file PATH`, passing only
+   `upload FILE --server https://dev.crowdmines.ai --descriptor-file PATH`, passing only
    the path through the shell. The script verifies ownership and permissions, rejects
    links and non-regular files, and deletes the descriptor before reading/transfer.
    Never put the credential in shell code or a heredoc. The file option and

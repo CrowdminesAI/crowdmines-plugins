@@ -2,9 +2,9 @@
 
 Install the CrowdMines Dev plugin in Codex or Claude Code from this public GitHub
 marketplace. It includes the MCP connection, upload skill, and standalone Python
-upload helper. The current bundle version is **0.5.1**.
+upload helper. The current bundle version is **0.5.2**.
 
-The plugin connects to **https://dev.emthanh.me/mcp**. Complete CrowdMines login,
+The plugin connects to **https://dev.crowdmines.ai/mcp**. Complete CrowdMines login,
 MFA if required, and organization consent. Public installation does not grant access
 to account data. Local uploads require Python 3.10+; no separate helper installation
 is needed. Use either the plugin or a manual MCP connection, not both: each adds the
