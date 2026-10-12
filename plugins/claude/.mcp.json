@@ -2,7 +2,7 @@
   "mcpServers": {
     "crowdmines-dev": {
       "type": "http",
-      "url": "https://dev.emthanh.me/mcp"
+      "url": "https://dev.crowdmines.ai/mcp"
     }
   }
 }
